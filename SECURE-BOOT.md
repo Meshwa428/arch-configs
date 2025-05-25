@@ -1,7 +1,3 @@
-kHere’s a more polished, reader-friendly version of your UEFI GRUB + Secure Boot setup guide:
-
----
-
 ## 📥 1. Install GRUB
 
 1. **Ensure TPM support**
