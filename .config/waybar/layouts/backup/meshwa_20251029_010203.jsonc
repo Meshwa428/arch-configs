@@ -1,0 +1,216 @@
+{
+  // --- Global Settings ---
+  "layer": "top",
+  "position": "top",
+  "margin-left": 10,
+  "margin-right": 10,
+  "margin-top": 7,
+  "margin-bottom": 0,
+  "height": 38,
+  "exclusive": true,
+  "reload_style_on_change": true,
+  "include": ["$XDG_CONFIG_HOME/waybar/includes/includes.json"],
+
+  // --- Module Layout (with slider groups) ---
+  "modules-left": ["hyprland/workspaces", "hyprland/window", "mpris"],
+  "modules-center": [
+    "custom/hyprsunset",
+    "idle_inhibitor",
+    "clock",
+    "custom/updates",
+    "custom/keybindhint",
+    "custom/gamemode"
+  ],
+  "modules-right": [
+    "backlight",
+    "group/audio",
+    "cpu",
+    "memory",
+    "battery",
+    "custom/bluetooth",
+    "tray",
+    "custom/power"
+  ],
+
+  "group/audio": {
+    "orientation": "horizontal",
+    "drawer": {
+      "transition-duration": 500,
+      "children-class": "slider-child",
+      "transition-to-left": true
+    },
+    "modules": ["pulseaudio", "pulseaudio/slider"]
+  },
+
+  // --- Module Configurations (Unchanged, with sliders added) ---
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "format-icons": { "default": " ", "active": " " }
+  },
+  "hyprland/window": {
+    "format": "{}",
+    "max-length": 15
+  },
+  "mpris": {
+    "format": "󰌳 {dynamic}",
+    "format-paused": "󰏤 {dynamic}",
+    "dynamic-max-length": 50,
+    "dynamic-dots": true,
+    "player-icons": { "default": "▶", "spotify": "" },
+    "ignored-players": ["firefox"]
+  },
+  "clock": {
+    "format": "{:%I:%M PM}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+  },
+  "backlight": {
+    "rotate": 0,
+    "format": "{icon} {percent}% ",
+    "format-icons": ["", "", "", "", "", "", "", "", ""],
+    "on-scroll-up": "hyde-shell brightnesscontrol i 1",
+    "on-scroll-down": "hyde-shell brightnesscontrol d 1",
+    "min-length": 6,
+    "tooltip": true,
+    "tooltip-format": "Backlight level: {icon} {percent}%"
+  },
+  "backlight#intel_backlight": {
+    "device": "intel_backlight",
+    "rotate": 0,
+    "format": "{icon} {percent}% ",
+    "format-icons": ["", "", "", "", "", "", "", "", ""],
+    "on-scroll-up": "hyde-shell brightnesscontrol i 1",
+    "on-scroll-down": "hyde-shell brightnesscontrol d 1",
+    "min-length": 6,
+    "tooltip": true,
+    "tooltip-format": "Backlight level: {icon} {percent}%\nUsing: intel_backlight"
+  },
+  "pulseaudio": {
+    "format": "{icon} {volume}",
+    "rotate": 0,
+    "format-muted": "婢",
+    "on-click": "pavucontrol -t 3",
+    "on-click-right": "hyde-shell volumecontrol -s ''",
+    "on-click-middle": "hyde-shell volumecontrol -o m",
+    "on-scroll-up": "hyde-shell volumecontrol -o i",
+    "on-scroll-down": "hyde-shell volumecontrol -o d",
+    "tooltip-format": "{icon} {desc} // {volume}%",
+    "scroll-step": 1,
+    "max-volume": 130,
+    "format-icons": {
+      "headphone": "",
+      "hands-free": "",
+      "headset": "",
+      "phone": "",
+      "portable": "",
+      "car": "",
+      "default": ["", "", ""]
+    }
+  },
+  "pulseaudio#microphone": {
+    "format": "{format_source}",
+    "rotate": 0,
+    "format-source": "\uf86b",
+    "format-source-muted": "\uf131",
+    "on-click": "pavucontrol -t 4",
+    "on-click-middle": "hyde-shell volumecontrol -i m",
+    "on-scroll-up": "hyde-shell volumecontrol -i i",
+    "on-scroll-down": "hyde-shell volumecontrol -i d",
+    "tooltip-format": "{format_source} {source_desc} // {source_volume}%",
+    "scroll-step": 5
+  },
+  "pulseaudio/slider": {
+    "min": 0,
+    "max": 130
+  },
+  // "cpu": { "interval": 2, "format": "{usage}% 󰘚 ", "tooltip": true },
+  // "memory": { "interval": 2, "format": "{used:0.1f}GB 󰍛", "tooltip": true },
+  "battery": {
+    "states": { "warning": 30, "critical": 15 },
+    "format": "{icon} {capacity}%",
+    "format-charging": "󰂄 {capacity}%"
+  },
+  "network": {
+    "format-wifi": "󰤨",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰤮"
+  },
+  "custom/bluetooth": {
+    "format": "󰂯",
+    "exec": "bluetoothctl show | grep 'Powered: yes' || true",
+    "return-type": "json",
+    "on-click": "blueman-manager",
+    "interval": 5,
+    "format-off": ""
+  },
+  "tray": { "icon-size": 18, "spacing": 10 },
+  "custom/power": {
+    "format": " ",
+    "rotate": 0,
+    "tooltip": true,
+    "tooltip-format": "<span color='#f38ba8'> </span>Logout menu",
+    "on-click": "hyde-shell logoutlaunch 1",
+    "menu": "on-click-right",
+    "menu-file": "${HYDE_WAYBAR_MENU_DIR:-$XDG_DATA_HOME/waybar/menus}/power.xml",
+    "menu-actions": {
+        "lock": "hyde-shell lockscreen.sh",
+        "logout": "hyprctl dispatch exit 0",
+        "shutdown-now": "shutdown now",
+        "shutdown-wait": "systemctl poweroff",
+        "reboot-now": "systemctl reboot",
+        "reboot-firmware": "systemctl reboot --firmware-setup",
+        "suspend": "systemctl suspend",
+        "hibernate": "systemctl hibernate"
+    },
+    "interval": 86400
+  },
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "rotate": 0,
+    "format-icons": {
+      "activated": "󰅶 ",
+      "deactivated": "󰛊 "
+    },
+    "justify": "center",
+    "tooltip": "true",
+    "tooltip-format-activated": "<span foreground='#98c379'>\udb80\udd76 Caffeine Mode Active</span>\nPrevents system from going to sleep",
+    "tooltip-format-deactivated": "<span foreground='#e06c75'>\udb81\udeca Caffeine Mode Inactive</span>\nSystem will follow normal power settings"
+  },
+  "custom/keybindhint": {
+      "format": "  ",
+      "tooltip-format": "  Keybinds",
+      "rotate": 0,
+      "on-click": "hyde-shell keybinds_hint" 
+  },
+  "custom/hyprsunset": {
+    "return-type": "json",
+    "format": "{0}  ",
+    "exec": "hyde-shell hyprsunset -rq",
+    "rotate": 0,
+    "on-click": "hyde-shell hyprsunset -t -P waybar:19",
+    "on-scroll-up": "hyde-shell hyprsunset -i '' -P waybar:19",
+    "on-scroll-down": "hyde-shell hyprsunset -d '' -P waybar:19",
+    "interval": "once",
+    "tooltip": true,
+    "signal": 19,
+    "menu": "on-click-right",
+    "menu-file": "${HYDE_WAYBAR_MENU_DIR:-$XDG_DATA_HOME/waybar/menus}/hyprsunset.xml",
+    "menu-actions": {
+      "warm-candle": "hyde-shell hyprsunset --cm temp -s 3000 -P waybar:19",
+      "soft-warm": "hyde-shell hyprsunset --cm temp -s 4000 -P waybar:19",
+      "neutral-white": "hyde-shell hyprsunset --cm temp -s 5000 -P waybar:19",
+      "daylight": "hyde-shell hyprsunset --cm temp -s 6500 -P waybar:19",
+      "cool-white": "hyde-shell hyprsunset --cm temp -s 7500 -P waybar:19",
+      "bright-blue": "hyde-shell hyprsunset --cm temp -s 9000 -P waybar:19",
+      "arctic-blue": "hyde-shell hyprsunset --cm temp -s 10000 -P waybar:19",
+      "gamma-20": "hyde-shell hyprsunset --cm gamma -s 20 -P waybar:19",
+      "gamma-30": "hyde-shell hyprsunset --cm gamma -s 30 -P waybar:19",
+      "gamma-40": "hyde-shell hyprsunset --cm gamma -s 40 -P waybar:19",
+      "gamma-50": "hyde-shell hyprsunset --cm gamma -s 50 -P waybar:19",
+      "gamma-60": "hyde-shell hyprsunset --cm gamma -s 60 -P waybar:19",
+      "gamma-70": "hyde-shell hyprsunset --cm gamma -s 70 -P waybar:19",
+      "gamma-80": "hyde-shell hyprsunset --cm gamma -s 80 -P waybar:19",
+      "gamma-90": "hyde-shell hyprsunset --cm gamma -s 90 -P waybar:19",
+      "gamma-100": "hyde-shell hyprsunset --cm gamma -s 100 -P waybar:19"
+    }
+  }
+}
