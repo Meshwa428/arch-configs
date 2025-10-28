@@ -12,7 +12,7 @@
   "include": ["$XDG_CONFIG_HOME/waybar/includes/includes.json"],
 
   // --- Module Layout (with slider groups) ---
-  "modules-left": ["hyprland/workspaces", "hyprland/window", "custom/spotify", "custom/cava"],
+  "modules-left": ["custom/arch-icon", "hyprland/workspaces", "hyprland/window", "custom/spotify", "custom/cava"],
   "modules-center": [
     "custom/hyprsunset",
     "idle_inhibitor",
@@ -49,8 +49,11 @@
     "format-icons": { "default": " ", "active": " " }
   },
   "hyprland/window": {
-    "format": " \uf303 {0}",
+    "format": "{0}",
     "max-length": 15
+  },
+  "custom/arch-icon": {
+    "format": " \uf303"
   },
   "custom/spotify": {
     "exec": "hyde-shell mediaplayer --player spotify",
