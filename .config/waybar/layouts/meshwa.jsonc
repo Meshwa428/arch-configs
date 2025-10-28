@@ -12,16 +12,16 @@
   "include": ["$XDG_CONFIG_HOME/waybar/includes/includes.json"],
 
   // --- Module Layout (with slider groups) ---
-  "modules-left": ["custom/arch-icon", "hyprland/workspaces", "hyprland/window", "custom/spotify", "custom/cava"],
+  "modules-left": ["custom/arch-icon", "hyprland/workspaces", "hyprland/window", "mpris"],
   "modules-center": [
     "custom/hyprsunset",
     "idle_inhibitor",
     "clock",
-    "custom/updates",
     "custom/keybindhint",
     "custom/gamemode"
   ],
   "modules-right": [
+    "custom/updates",
     "backlight",
     "group/audio",
     "cpu",
@@ -81,13 +81,53 @@
       "open": "gtk-launch spotify || gtk-launch spotify-launcher"
     }
   },
-  "clock": {
-    "format": "{:%I:%M PM}",
-    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+  "mpris": {
+    "justify": "center",
+    "dynamic-importance-order" : ["title", "artist", "album"],
+    "dynamic-order:" : ["title", "artist", "album"],
+    "format": "{player_icon} {dynamic}",
+    "format-paused": "{status_icon} <i> {dynamic} </i>",
+    "format-stopped": "{status_icon}",
+    "interval": 1,
+    "dynamic-separator": "  ",
+    "player-icons": {
+      "default": "󰌳 ",
+      "mpv": "\ud83c\udfb5",
+      "spotify": "󰌳",
+      "vlc": "\uf8e0"
+    },
+    "status-icons": {
+      "paused": "\uf04c",
+      "playing": "\uf04b",
+      "stopped": "\uf04d"
+    },
+    "max-length": 20,
+    "on-click": "playerctl play-pause",
+    "on-click-middle": "playerctl stop",
+    "on-scroll-up": "playerctl position 1-",
+    "on-scroll-down": "playerctl position 1+",
+    "on-click-right": "menu",
+    "tooltip": true,
+    "tooltip-format": "{title}\nby: {artist}\n{position} / {length}\nPlayer: {player}\n\n󰐎 Click to play/pause\n󰺤 Scroll to seek\n󰙤 Middle click previous\n󰙢 Right click next",  
+    "tooltip-format-stopped": "Player: {player}\n\n󰐎 Click to play/pause\n󰺤 Scroll to seek\n󰙤 Middle click previous\n󰙢 Right click next",
+    "menu": "on-click-right",
+    "menu-file": "${HYDE_WAYBAR_MENU_DIR:-$XDG_DATA_HOME/waybar/menus}/spotify.xml",
+    "menu-actions": {
+      "play-pause": "playerctl play-pause",
+      "next": "playerctl next",
+      "previous": "playerctl previous",
+      "stop": "playerctl stop",
+      "shuffle": "playerctl shuffle toggle",
+      "repeat": "playerctl loop Track",
+      "loop": "playerctl loop Playlist",
+      "disable-loop": "playerctl loop None",
+      // "volume": "hyde-shell volumecontrol -p spotify",
+      "open": "spotify || spotify-launcher"
+    }
   },
   "backlight": {
     "rotate": 0,
-    "format": "{icon} {percent}% ",
+    "format": "{icon} {percent} ",
     "format-icons": ["", "", "", "", "", "", "", "", ""],
     "on-scroll-up": "hyde-shell brightnesscontrol i 1",
     "on-scroll-down": "hyde-shell brightnesscontrol d 1",
@@ -98,7 +138,7 @@
   "backlight#intel_backlight": {
     "device": "intel_backlight",
     "rotate": 0,
-    "format": "{icon} {percent}% ",
+    "format": "{icon} {percent} ",
     "format-icons": ["", "", "", "", "", "", "", "", ""],
     "on-scroll-up": "hyde-shell brightnesscontrol i 1",
     "on-scroll-down": "hyde-shell brightnesscontrol d 1",
@@ -107,7 +147,7 @@
     "tooltip-format": "Backlight level: {icon} {percent}%\nUsing: intel_backlight"
   },
   "pulseaudio": {
-    "format": "{icon} {volume}",
+    "format": "{icon}  {volume}",
     "rotate": 0,
     "format-muted": "婢",
     "on-click": "pavucontrol -t 3",
