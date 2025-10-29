@@ -28,7 +28,7 @@
     "memory",
     "battery",
     "power-profiles-daemon",
-    "custom/bluetooth",
+    "bluetooth",
     "tray",
     "custom/power"
   ],
@@ -147,7 +147,7 @@
     "tooltip-format": "Backlight level: {icon} {percent}%\nUsing: intel_backlight"
   },
   "pulseaudio": {
-    "format": "{icon}  {volume}",
+    "format": "{icon} {volume}",
     "rotate": 0,
     "format-muted": "婢",
     "on-click": "pavucontrol -t 3",
@@ -165,7 +165,7 @@
       "phone": "",
       "portable": "",
       "car": "",
-      "default": ["", "", ""]
+      "default": ["", "", " "]
     }
   },
   "pulseaudio#microphone": {
@@ -187,9 +187,17 @@
   // "cpu": { "interval": 2, "format": "{usage}% 󰘚 ", "tooltip": true },
   // "memory": { "interval": 2, "format": "{used:0.1f}GB 󰍛", "tooltip": true },
   "battery": {
-    "states": { "warning": 30, "critical": 15 },
+    "states": {
+      // "good": 95,
+      // "warning": 30,
+      // "critical": 20
+    },
     "format": "{icon} {capacity}%",
-    "format-charging": "󰂄 {capacity}%"
+    "rotate": 0,
+    "format-charging": " {capacity}%",
+    "format-plugged": " {capacity}%",
+    "format-alt": "{time} {icon}",
+    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
   },
   "network": {
     "format-wifi": "󰤨",
@@ -203,6 +211,21 @@
     "on-click": "blueman-manager",
     "interval": 5,
     "format-off": ""
+  },
+  "bluetooth": {
+    "format": "",
+    "rotate": 0,
+    "format-disabled": "",
+    "format-connected": " {num_connections}",
+    "format-connected-battery": "{icon} {num_connections}",
+    "on-click": "blueman-manager",
+    // "format-connected-battery": "{icon} {device_alias}-{device_battery_percentage}%",
+    "format-icons": ["󰥇", "󰤾", "󰤿", "󰥀", "󰥁", "󰥂", "󰥃", "󰥄", "󰥅", "󰥆", "󰥈"],
+    // "format-device-preference": [ "device1", "device2" ], // preference list deciding the displayed device If this config option is not defined or none of the devices in the list are connected, it will fall back to showing the last connected device.
+    "tooltip-format": "{controller_alias}\n{num_connections} connected",
+    "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n\n{device_enumerate}",
+    "tooltip-format-enumerate-connected": "{device_alias}",
+    "tooltip-format-enumerate-connected-battery": "{device_alias}\t{icon} {device_battery_percentage}%"
   },
   "tray": { "icon-size": 18, "spacing": 10 },
   "custom/power": {
@@ -229,8 +252,8 @@
     "format": "{icon}",
     "rotate": 0,
     "format-icons": {
-      "activated": "󰅶 ",
-      "deactivated": "󰛊 "
+      "activated": "󰅶",
+      "deactivated": "󰛊"
     },
     "justify": "center",
     "tooltip": "true",
@@ -238,14 +261,14 @@
     "tooltip-format-deactivated": "<span foreground='#e06c75'>\udb81\udeca Caffeine Mode Inactive</span>\nSystem will follow normal power settings"
   },
   "custom/keybindhint": {
-      "format": "  ",
+      "format": "",
       "tooltip-format": "  Keybinds",
       "rotate": 0,
       "on-click": "hyde-shell keybinds_hint" 
   },
   "custom/hyprsunset": {
     "return-type": "json",
-    "format": "{0}  ",
+    "format": "{0}",
     "exec": "hyde-shell hyprsunset -rq",
     "rotate": 0,
     "on-click": "hyde-shell hyprsunset -t -P waybar:19",
@@ -276,14 +299,24 @@
     }
   },
   "power-profiles-daemon": {
-    "format": "{icon} ",
+    "format": "{icon}",
     "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
     "tooltip": true,
     "format-icons": {
       "default": "",
       "performance": "",
-      "balanced": "",
+      "balanced": " ",
       "power-saver": ""
     }
+  },
+    "custom/updates": {
+    "exec": "hyde-shell systemupdate",
+    "return-type": "json",
+    "format": "{0} ",
+    "rotate": 0,
+    "on-click": "hyprctl dispatch exec -- hyde-shell systemupdate up", 
+    "interval": 86400,
+    "tooltip": true,
+    "signal": 20
   }
 }

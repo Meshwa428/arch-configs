@@ -11,7 +11,7 @@ window#waybar {
 }
 
 /* --- Module Spacing --- */
-#mpris, #custom-spotify, #cpu, #memory, #battery, #network, #custom-bluetooth, #tray, #custom-power {
+#bluetooth, #custom-gamemode, #idle_inhibitor, #custom-keybindhint, #custom-hyprsunset, #power-profiles-daemon, #mpris, #custom-spotify, #custon-updates, #cpu, #memory, #battery, #network, #custom-bluetooth, #tray, #custom-power {
     padding: 0 5px;
     margin: 0 2px;
 }
@@ -89,7 +89,8 @@ tooltip {
 #custom-power { color: #f38ba8; padding-right: 10px; }
 @keyframes blink { to { color: #1e1e2e; background-color: #f38ba8; } }
 
-/* --- FIXED: Exact Slider Styling from Reference --- */
+#idle_inhibitor.activated { color: #a6e3a1; }
+#idle_inhibitor.deactivated { color: #f38ba8; }
 
 /* This container for the revealed slider is now transparent */
 .slider-child {
