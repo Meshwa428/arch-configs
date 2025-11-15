@@ -1,15 +1,11 @@
 // quickshell/widgets/Clock.qml
 
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 
 Item {
     id: clockRoot 
-    implicitWidth: 310
-    implicitHeight: 220
-
-    signal positionSaved(real newX, real newY)
-    signal resetPosition()
+    implicitWidth: 560
+    implicitHeight: 190
 
     property color textColor: "white"
     property color shadowColor: "#98000000"
@@ -17,45 +13,33 @@ Item {
     Behavior on textColor { ColorAnimation { duration: 800; easing.type: Easing.OutCubic } }
     Behavior on shadowColor { ColorAnimation { duration: 800; easing.type: Easing.OutCubic } }
 
-    MouseArea {
-        id: dragArea
-        anchors.fill: parent
-        cursorShape: Qt.SizeAllCursor
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        property point startPos: "0,0"
-        
-        onPressed: (mouse) => {
-            if (mouse.button === Qt.LeftButton) {
-                startPos = Qt.point(clockRoot.parent.x, clockRoot.parent.y)
-            }
-        }
-        
-        onPositionChanged: (mouse) => {
-            if (mouse.buttons & Qt.LeftButton) {
-                var newX = startPos.x + mouse.x - mouse.startX
-                var newY = startPos.y + mouse.y - mouse.startY
-                
-                clockRoot.parent.x = newX
-                clockRoot.parent.y = newY
-            }
-        }
-        
-        onReleased: (mouse) => {
-            if (mouse.button === Qt.LeftButton) {
-                clockRoot.positionSaved(clockRoot.parent.x, clockRoot.parent.y)
-            }
-        }
-        
-        onClicked: (mouse) => {
-            if (mouse.button === Qt.RightButton) {
-                clockRoot.resetPosition()
-            }
-        }
-    }
-
     property string dayOfWeek: Qt.formatDateTime(new Date(), "dddd").toUpperCase()
     property string fullDate: Qt.formatDateTime(new Date(), "dd MMMM, yyyy").toUpperCase()
     property string timeStr: "-   " + Qt.formatDateTime(new Date(), "HH:mm") + "   -"
+
+    // Calculate adaptive font size to exactly match widget width
+    property real dayFontSize: {
+        if (clockRoot.width <= 0 || dayOfWeek.length === 0) return 50
+        
+        // Letter spacing is 0.11 of font size per character
+        // Total width = base text width + (letter spacing * number of gaps)
+        // At font size F: total width = F * char_width_factor * length + F * 0.11 * (length - 1)
+        // Simplified: total width ≈ F * length * (char_width_factor + 0.11)
+        
+        // For Anurati font, approximate character width is 0.7 of font size
+        var charWidthFactor = 0.7
+        var letterSpacingFactor = 0.11
+        var totalWidthFactor = (charWidthFactor + letterSpacingFactor) * dayOfWeek.length
+        
+        // Target 95% of widget width
+        var targetWidth = clockRoot.width * 0.95
+        var widthBasedSize = targetWidth / totalWidthFactor
+        
+        // Also respect height constraint
+        var maxHeightSize = clockRoot.height * 0.47
+        
+        return Math.min(widthBasedSize, maxHeightSize)
+    }
 
     Timer {
         id: ticker
@@ -72,54 +56,54 @@ Item {
     Column {
         id: col
         anchors.centerIn: parent
-        spacing: 6
-        width: clockRoot.implicitWidth
+        spacing: 12
+        width: clockRoot.width
 
         // Day of week (shadow + main)
         Item {
-            width: parent.width;
-            height: 120
+            width: parent.width
+            height: clockRoot.dayFontSize * 1.2  // Height based on actual font size
             Text {
-                text: clockRoot.dayOfWeek;
-                anchors.horizontalCenter: parent.horizontalCenter;
+                text: clockRoot.dayOfWeek
+                anchors.horizontalCenter: parent.horizontalCenter
                 y: 6
-                font.family: "Anurati";
-                font.pixelSize: 110;
+                font.family: "Anurati"
+                font.pixelSize: clockRoot.dayFontSize
                 color: clockRoot.shadowColor
-                font.letterSpacing: 10
+                font.letterSpacing: clockRoot.dayFontSize * 0.11
                 horizontalAlignment: Text.AlignHCenter
             }
             Text {
-                text: clockRoot.dayOfWeek;
-                anchors.horizontalCenter: parent.horizontalCenter;
+                text: clockRoot.dayOfWeek
+                anchors.horizontalCenter: parent.horizontalCenter
                 y: 0
-                font.family: "Anurati";
-                font.pixelSize: 110;
+                font.family: "Anurati"
+                font.pixelSize: clockRoot.dayFontSize
                 color: clockRoot.textColor
-                font.letterSpacing: 10
+                font.letterSpacing: clockRoot.dayFontSize * 0.11
                 horizontalAlignment: Text.AlignHCenter
             }
         }
 
         // Date (shadow + main)
         Item {
-            width: parent.width;
+            width: parent.width
             height: 36
             Text {
-                text: clockRoot.fullDate;
-                anchors.horizontalCenter: parent.horizontalCenter;
+                text: clockRoot.fullDate
+                anchors.horizontalCenter: parent.horizontalCenter
                 y: 4
-                font.family: "Orbitron";
-                font.pixelSize: 22;
+                font.family: "Orbitron"
+                font.pixelSize: 22
                 color: clockRoot.shadowColor
                 horizontalAlignment: Text.AlignHCenter
             }
             Text {
-                text: clockRoot.fullDate;
-                anchors.horizontalCenter: parent.horizontalCenter;
+                text: clockRoot.fullDate
+                anchors.horizontalCenter: parent.horizontalCenter
                 y: 0
-                font.family: "Orbitron";
-                font.pixelSize: 22;
+                font.family: "Orbitron"
+                font.pixelSize: 22
                 color: clockRoot.textColor
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -127,23 +111,23 @@ Item {
 
         // Time (shadow + main)
         Item {
-            width: parent.width;
+            width: parent.width
             height: 40
             Text {
-                text: clockRoot.timeStr;
-                anchors.horizontalCenter: parent.horizontalCenter;
+                text: clockRoot.timeStr
+                anchors.horizontalCenter: parent.horizontalCenter
                 y: 4
-                font.family: "Orbitron";
-                font.pixelSize: 26;
+                font.family: "Orbitron"
+                font.pixelSize: 26
                 color: clockRoot.shadowColor
                 horizontalAlignment: Text.AlignHCenter
             }
             Text {
-                text: clockRoot.timeStr;
-                anchors.horizontalCenter: parent.horizontalCenter;
+                text: clockRoot.timeStr
+                anchors.horizontalCenter: parent.horizontalCenter
                 y: 0
-                font.family: "Orbitron";
-                font.pixelSize: 26;
+                font.family: "Orbitron"
+                font.pixelSize: 26
                 color: clockRoot.textColor
                 horizontalAlignment: Text.AlignHCenter
             }

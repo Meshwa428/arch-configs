@@ -6,7 +6,6 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import "widgets"
-import "modules/common"
 
 ShellRoot {
     Variants {
@@ -18,11 +17,11 @@ ShellRoot {
             screen: modelData
 
             property string currentWallpaperPath: ""
-            property real targetClockX: screen.width / 2
-            property real targetClockY: screen.height / 2
+            property real autoClockX: screen.width / 2
+            property real autoClockY: screen.height / 2
             property color dominantColor: "#FFFFFF"
+            property bool isManuallyDragged: false
 
-            // A PanelWindow must be anchored to the screen edges to become full-screen.
             anchors {
                 top: true
                 bottom: true
@@ -31,10 +30,12 @@ ShellRoot {
             }
 
             color: "transparent"
-            mask: Region {}
+            // CRITICAL: Set mask to allow the clock widget to receive mouse input
+            mask: Region {
+                item: content
+            }
             WlrLayershell.layer: WlrLayer.Bottom
 
-            // Timer to periodically check for wallpaper changes.
             Timer {
                 interval: 3000
                 repeat: true
@@ -45,13 +46,15 @@ ShellRoot {
 
             Process {
                 id: getWallpaperProc
-                command: ["hydectl", "wallpaper", "get"]
+                command: ["wallpaper.sh", "-g"]
                 stdout: StdioCollector {
                     onStreamFinished: {
                         const newPath = text.trim();
                         if (newPath && newPath !== "unknown request" && newPath !== clockWindow.currentWallpaperPath) {
                             console.log("Wallpaper changed to:", newPath);
                             clockWindow.currentWallpaperPath = newPath;
+                            // Reset manual drag state when wallpaper changes
+                            clockWindow.isManuallyDragged = false;
                             updateClockPosition();
                         }
                     }
@@ -64,16 +67,14 @@ ShellRoot {
                 }
                 
                 console.log("Analyzing wallpaper for best clock position...");
-                console.log("Screen dimensions:", clockWindow.screen.width, "x", clockWindow.screen.height);
-                console.log("Widget dimensions:", content.width, "x", content.height);
                 
                 leastBusyRegionProc.exec([
                     Quickshell.shellPath("scripts/least-busy-region.sh"),
                     clockWindow.currentWallpaperPath,
-                    "--width", Math.floor(content.width),
-                    "--height", Math.floor(content.height),
-                    "--screen-width", clockWindow.screen.width,
-                    "--screen-height", clockWindow.screen.height,
+                    "--width", Math.floor(content.width).toString(),
+                    "--height", Math.floor(content.height).toString(),
+                    "--screen-width", clockWindow.screen.width.toString(),
+                    "--screen-height", clockWindow.screen.height.toString(),
                     "--top-padding", "20",
                     "--bottom-padding", "100",
                     "--horizontal-padding", "100"
@@ -92,8 +93,8 @@ ShellRoot {
                                 return;
                             }
                             console.log("Found least busy region:", JSON.stringify(result));
-                            clockWindow.targetClockX = result.center_x;
-                            clockWindow.targetClockY = result.center_y;
+                            clockWindow.autoClockX = result.center_x;
+                            clockWindow.autoClockY = result.center_y;
                             clockWindow.dominantColor = result.dominant_color;
                         } catch (e) {
                             console.error("Failed to parse region data:", e, text);
@@ -101,86 +102,125 @@ ShellRoot {
                     }
                 }
             }
+            
+            // Function to sample color at current dragged position
+            function sampleColorAtPosition() {
+                if (clockWindow.currentWallpaperPath === "") return;
+                
+                // Calculate the center position of the widget in screen coordinates
+                var centerX = content.x + content.width / 2;
+                var centerY = content.y + content.height / 2;
+                
+                console.log("Sampling color at dragged position:", centerX, centerY);
+                
+                // Use the least-busy-region script but with specific position
+                // We'll use padding=0 to just get color at this exact position
+                colorSampleProc.exec([
+                    Quickshell.shellPath("scripts/least-busy-region.sh"),
+                    clockWindow.currentWallpaperPath,
+                    "--width", Math.floor(content.width).toString(),
+                    "--height", Math.floor(content.height).toString(),
+                    "--screen-width", clockWindow.screen.width.toString(),
+                    "--screen-height", clockWindow.screen.height.toString(),
+                    "--top-padding", "0",
+                    "--bottom-padding", "0",
+                    "--horizontal-padding", "0",
+                    "--stride", "1"
+                ]);
+            }
+            
+            Process {
+                id: colorSampleProc
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        if (text.trim() === "") return;
+                        try {
+                            const result = JSON.parse(text);
+                            if (result.dominant_color) {
+                                console.log("Sampled color at dragged position:", result.dominant_color);
+                                clockWindow.dominantColor = result.dominant_color;
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse color sample:", e);
+                        }
+                    }
+                }
+            }
 
             Item {
                 id: content
-                implicitWidth: clockWidget.implicitWidth
-                implicitHeight: clockWidget.implicitHeight
-                width: implicitWidth
-                height: implicitHeight
+                width: clockWidget.implicitWidth
+                height: clockWidget.implicitHeight
                 
-                // Calculate clamped position whenever targets change
-                property real clampedX: {
-                    var safetyMargin = 20; // Extra margin to prevent text cutoff
-                    var currentWidth = content.width;
-                    if (Config.options.clock.manualPosition) {
-                        return Math.max(safetyMargin, Math.min(Config.options.clock.x, 
-                                                     clockWindow.screen.width - currentWidth - safetyMargin));
+                // Calculate position: use current position when dragged, automatic otherwise
+                x: {
+                    var safetyMargin = 20;
+                    if (clockWindow.isManuallyDragged) {
+                        // Return current x (don't override while dragging)
+                        return x;
                     } else {
-                        var leftX = clockWindow.targetClockX - currentWidth / 2;
-                        return Math.max(safetyMargin, Math.min(leftX, clockWindow.screen.width - currentWidth - safetyMargin));
+                        // Use automatic position
+                        var leftX = clockWindow.autoClockX - width / 2;
+                        return Math.max(safetyMargin, Math.min(leftX, clockWindow.screen.width - width - safetyMargin));
                     }
                 }
                 
-                property real clampedY: {
-                    var safetyMargin = 20; // Extra margin to prevent text cutoff
-                    var currentHeight = content.height;
-                    if (Config.options.clock.manualPosition) {
-                        return Math.max(safetyMargin, Math.min(Config.options.clock.y, 
-                                                     clockWindow.screen.height - currentHeight - safetyMargin));
+                y: {
+                    var safetyMargin = 20;
+                    if (clockWindow.isManuallyDragged) {
+                        // Return current y (don't override while dragging)
+                        return y;
                     } else {
-                        var topY = clockWindow.targetClockY - currentHeight / 2;
-                        return Math.max(safetyMargin, Math.min(topY, clockWindow.screen.height - currentHeight - safetyMargin));
+                        // Use automatic position
+                        var topY = clockWindow.autoClockY - height / 2;
+                        return Math.max(safetyMargin, Math.min(topY, clockWindow.screen.height - height - safetyMargin));
                     }
                 }
                 
-                // Bind position to clamped values
-                x: clampedX
-                y: clampedY
-                
-                onClampedXChanged: {
-                    console.log("Position update - Target:", 
-                                Math.floor(clockWindow.targetClockX - content.width/2),
-                                Math.floor(clockWindow.targetClockY - content.height/2),
-                                "Final:", Math.floor(clampedX), Math.floor(clampedY),
-                                "Size:", content.width, "x", content.height);
-                }
-                
-                // Trigger position update when size is known
-                onWidthChanged: {
-                    if (width > 0 && !Config.options.clock.manualPosition) {
-                        Qt.callLater(updateClockPosition);
-                    }
-                }
-
+                // Animate only when not manually dragged
                 Behavior on x { 
-                    enabled: !Config.options.clock.manualPosition
+                    enabled: !clockWindow.isManuallyDragged
                     NumberAnimation { duration: 800; easing.type: Easing.OutCubic } 
                 }
                 Behavior on y { 
-                    enabled: !Config.options.clock.manualPosition
+                    enabled: !clockWindow.isManuallyDragged
                     NumberAnimation { duration: 800; easing.type: Easing.OutCubic } 
+                }
+                
+                // Trigger position update when size changes
+                onWidthChanged: {
+                    if (width > 0 && !clockWindow.isManuallyDragged) {
+                        Qt.callLater(clockWindow.updateClockPosition);
+                    }
+                }
+                
+                // MouseArea for dragging
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.SizeAllCursor
+                    drag.target: content
+                    drag.axis: Drag.XAndYAxis
+                    drag.minimumX: 20
+                    drag.minimumY: 20
+                    drag.maximumX: clockWindow.screen.width - content.width - 20
+                    drag.maximumY: clockWindow.screen.height - content.height - 20
+                    
+                    onPressed: {
+                        console.log("Drag started at:", content.x, content.y);
+                        clockWindow.isManuallyDragged = true;
+                    }
+                    
+                    onReleased: {
+                        console.log("Drag ended at:", content.x, content.y);
+                        // Sample color at new position after a short delay
+                        Qt.callLater(clockWindow.sampleColorAtPosition);
+                    }
                 }
 
                 Clock {
                     id: clockWidget
                     textColor: Qt.color(clockWindow.dominantColor).hslLightness > 0.5 ? "#1A1A1A" : "#ffffff"
                     shadowColor: Qt.color(clockWindow.dominantColor).hslLightness > 0.5 ? "#9fffffff" : "#98000000"
-
-                    onPositionSaved: (newX, newY) => {
-                        console.log("Saving manual position:", newX, newY);
-                        var clampedX = Math.max(0, Math.min(newX, clockWindow.screen.width - content.width));
-                        var clampedY = Math.max(0, Math.min(newY, clockWindow.screen.height - content.height));
-                        Config.options.clock.manualPosition = true;
-                        Config.options.clock.x = clampedX;
-                        Config.options.clock.y = clampedY;
-                    }
-
-                    onResetPosition: () => {
-                        console.log("Resetting to automatic position.");
-                        Config.options.clock.manualPosition = false;
-                        updateClockPosition();
-                    }
                 }
             }
         }

@@ -1,5 +1,5 @@
 * {
-    font-family: "JetBrains Mono Nerd Font";
+    font-family: "FiraCode  Nerd Font";
     font-weight: bold; 
     font-size: 14px;
 }
@@ -11,9 +11,21 @@ window#waybar {
 }
 
 /* --- Module Spacing --- */
-#bluetooth, #custom-gamemode, #idle_inhibitor, #custom-keybindhint, #custom-hyprsunset, #power-profiles-daemon, #mpris, #custom-spotify, #custon-updates, #cpu, #memory, #battery, #network, #custom-bluetooth, #tray, #custom-power {
+#tray, #backlight, #bluetooth, #custom-gamemode, #idle_inhibitor, #custom-keybindhint, #custom-hyprsunset, #power-profiles-daemon, #mpris, #custom-spotify, #custon-updates, #cpu, #memory, #battery, #network, #custom-bluetooth, #tray, #custom-power {
     padding: 0 5px;
     margin: 0 2px;
+}
+
+#pulseaudio.microphone {
+    font-size: medium;
+    padding: 0 8px;
+    margin: 0 4px;
+    margin-right: -2px;
+}
+
+#pulseaudio.microphone.source-muted {
+    margin-right: 5px;
+    padding: 0 5px;
 }
 
 #custom-arch-icon {
@@ -81,6 +93,7 @@ tooltip {
 #backlight { color: #89dceb; }
 #pulseaudio { color: #cba6f7; }
 #pulseaudio.muted { color: #cba6f7; }
+#pulseaudio.microphone { color: #ffffff; }
 #cpu { color: #f38ba8; }
 #memory { color: #fab387; }
 #battery { color: #a6e3a1; }
@@ -115,4 +128,9 @@ tooltip {
 #pulseaudio-slider highlight {
     border-radius: 8px;
     background-color: #cba6f7;
+}
+
+#custom-tray-icon {
+    color: #89b4fa;
+    font-size: 20px;
 }

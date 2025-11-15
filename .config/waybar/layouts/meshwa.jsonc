@@ -21,17 +21,36 @@
     "custom/gamemode"
   ],
   "modules-right": [
-    "custom/updates",
+    "group/tray-drawer",
     "backlight",
     "group/audio",
+    "pulseaudio#microphone",
     "cpu",
     "memory",
     "battery",
     "power-profiles-daemon",
     "bluetooth",
-    "tray",
     "custom/power"
   ],
+
+  // --- Tray Drawer Group ---
+  "group/tray-drawer": {
+    "orientation": "horizontal",
+    "drawer": {
+      "transition-duration": 500,
+      "children-class": "tray-child",
+      "transition-to-left": true
+    },
+    "modules": ["custom/tray-icon", "tray", "custom/updates"]
+  },
+
+  // --- Custom Tray Icon (visible when collapsed) ---
+  "custom/tray-icon": {
+    "format": "󰅃",
+    "rotate": 90,
+    "tooltip": true,
+    "tooltip-format": "System Tray"
+  },
 
   "group/audio": {
     "orientation": "horizontal",
@@ -127,11 +146,11 @@
   },
   "backlight": {
     "rotate": 0,
-    "format": "{icon} {percent} ",
+    "format": "{icon} {percent}",
     "format-icons": ["", "", "", "", "", "", "", "", ""],
     "on-scroll-up": "hyde-shell brightnesscontrol i 1",
     "on-scroll-down": "hyde-shell brightnesscontrol d 1",
-    "min-length": 6,
+    "min-length": 2,
     "tooltip": true,
     "tooltip-format": "Backlight level: {icon} {percent}%"
   },
@@ -165,14 +184,14 @@
       "phone": "",
       "portable": "",
       "car": "",
-      "default": ["", "", " "]
+      "default": ["", "", ""]
     }
   },
   "pulseaudio#microphone": {
     "format": "{format_source}",
     "rotate": 0,
-    "format-source": "\uf86b",
-    "format-source-muted": "\uf131",
+    "format-source": "",
+    "format-source-muted": "",
     "on-click": "pavucontrol -t 4",
     "on-click-middle": "hyde-shell volumecontrol -i m",
     "on-scroll-up": "hyde-shell volumecontrol -i i",
@@ -184,21 +203,32 @@
     "min": 0,
     "max": 130
   },
-  // "cpu": { "interval": 2, "format": "{usage}% 󰘚 ", "tooltip": true },
-  // "memory": { "interval": 2, "format": "{used:0.1f}GB 󰍛", "tooltip": true },
-  "battery": {
-    "states": {
-      // "good": 95,
-      // "warning": 30,
-      // "critical": 20
-    },
-    "format": "{icon} {capacity}%",
+  "cpu": {
+    "interval": 10,
+    "format": "󰍛 {usage}%",
     "rotate": 0,
-    "format-charging": " {capacity}%",
-    "format-plugged": " {capacity}%",
-    "format-alt": "{time} {icon}",
-    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+    "format-alt": "{icon0}{icon1}{icon2}{icon3}",
+    "format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
   },
+  "memory": {
+    "states": {
+      "c": 90,
+      "h": 60,
+      "m": 30
+    },
+    "interval": 30,
+    "format": "\udb83\udf86 {used}GB",
+    "rotate": 0,
+    "format-m": "\udb83\udf85 {used}GB",
+    "format-h": "\udb81\udcc5 {used}GB",
+    "format-c": "\uf421 {used}GB",
+    "format-alt": "\udb83\udf86 {percentage}%",
+    "max-length": 10,
+    "tooltip": true,
+    //"tooltip-format": "\udb83\udf86 {percentage}%\n\ue266 {used:0.1f}GB/{total:0.1f}GB",
+    "tooltip-format": "\udb83\udf86 Memory usage: {percentage}%\n\ue266 Used: {used:0.2f}GB / {total:0.2f}GB\n\uf85a Available: {avail:0.2f}GB\n\uf233 Swap used: {swapUsed:0.2f}GB / {swapTotal:0.2f}GB ({swapPercentage}%)"
+  },
+  // "memory": { "interval": 2, "format": "{used:0.1f}GB 󰍛", "tooltip": true },
   "network": {
     "format-wifi": "󰤨",
     "format-ethernet": "󰈀",
@@ -227,7 +257,7 @@
     "tooltip-format-enumerate-connected": "{device_alias}",
     "tooltip-format-enumerate-connected-battery": "{device_alias}\t{icon} {device_battery_percentage}%"
   },
-  "tray": { "icon-size": 18, "spacing": 10 },
+  "tray": { "icon-size": 18, "spacing": 3 },
   "custom/power": {
     "format": " ",
     "rotate": 0,
