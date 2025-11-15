@@ -46,7 +46,7 @@ ShellRoot {
 
             Process {
                 id: getWallpaperProc
-                command: ["wallpaper.sh", "-g"]
+                command: ["wallpaper.sh", "-gG"]
                 stdout: StdioCollector {
                     onStreamFinished: {
                         const newPath = text.trim();
